@@ -38,7 +38,7 @@ namespace AeroNovelEpub
                 if (f.Contains("info.txt"))
                 {
                     body = "<div class=\"info\" epub:type=\"acknowledgements\">" + body + "<p>AeroNovelTool EPUB生成器by AE " + DateTime.Now + "</p>" +
-                    "<p>推荐使用阅读器:<br/>Apple Books<br/>Microsoft Edge<br/>Kindle(使用Kindlegen 转换)<br/></p>" +
+                    "<p>推荐使用阅读器:<br/>Apple Books<br/>Microsoft Edge(UWP Edge)<br/>Kindle(使用Kindlegen 转换)<br/></p>" +
                     "</div>";
                     //File.WriteAllText("info.txt",body);
                 }

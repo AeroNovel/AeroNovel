@@ -35,13 +35,19 @@ class Program
                         Publish.Restore(args[1]);
                     }
                     break;
-                case "epub2note":
+                case "epub2comment":
                     if (File.Exists(args[1]))
                     {
-                        EpubToNote.Proc(args[1]);
+                        Epub2Comment.Proc(args[1]);
                     }
                     break;
+                default:
+                Log.log("[Warn]Nothing happens. Usage:epub/txt/bbcode/restore/epub2comment");
+                break;
             }
+        }else
+        {
+            Log.log("[Warn]Usage:epub/txt/bbcode/restore/epub2comment");
         }
     }
 }

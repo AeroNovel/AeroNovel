@@ -1,10 +1,10 @@
 using System.IO;
 using System.Text.RegularExpressions;
-public class EpubToNote
+public class Epub2Comment
 {
     public static void Proc(string path)
     {
-        Directory.CreateDirectory("epub2note_output");
+        Directory.CreateDirectory("epub2comment_output");
         Epub e = new Epub(path);
         e.items.ForEach(
             (i) =>
@@ -33,13 +33,13 @@ public class EpubToNote
                 XTag p0=(XTag)p;
                 if(p.type==PartType.tag_start&&p0.tagname=="rt"){txt+="(";}
                 if(p.type==PartType.tag_end&&p0.tagname=="rt"){txt+=")";}
-                 if(p.type==PartType.tag_start&&p0.tagname=="p"){txt+="//";}
-                if(p.type==PartType.tag_end&&p0.tagname=="p"){txt+="\r\n";}
-                if(p.type==PartType.tag_end&&p0.tagname=="div"){txt+="\r\n";}
+                 if(p.type==PartType.tag_start&&p0.tagname=="p"){txt+="##";}
+                if(p.type==PartType.tag_end&&p0.tagname=="p"){txt+="\r\n\r\n##——————\r\n";}
+                if(p.type==PartType.tag_end&&p0.tagname=="div"){txt+="\r\n\r\n##——————\r\n";}
             }
         });
         if(Util.Trim(counter).Length>0)
-        File.WriteAllText("epub2note_output/"+name+".txt",txt);
+        File.WriteAllText("epub2comment_output/"+name+".txt",txt);
         
 
     }

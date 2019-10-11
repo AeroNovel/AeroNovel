@@ -57,6 +57,7 @@ class GenTxt
         string html = "";
         foreach (string line in txt)
         {
+            if(line.StartsWith("##"))continue;
             string r = line;
             bool aligned=false;
             Match m = Regex.Match("", "1");

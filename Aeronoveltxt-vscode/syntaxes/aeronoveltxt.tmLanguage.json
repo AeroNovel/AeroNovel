@@ -38,6 +38,15 @@
 					},
 					"match": "(///).*$\\n?",
 					"name": "comment.line"
+				},
+				{
+					"captures": {
+						"1": {
+							"name": "punctuation.definition.comment.aeronoveltxt"
+						}
+					},
+					"match": "(##).*$\\n?",
+					"name": "comment.line"
 				}
 			]
 		}

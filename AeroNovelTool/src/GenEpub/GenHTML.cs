@@ -51,6 +51,7 @@ namespace AeroNovelEpub
             string html = "";
             foreach (string line in txt)
             {
+                if(line.StartsWith("##"))continue;
                 string r =EncodeHTML(line);
                 Match m = Regex.Match("", "1");
                 do

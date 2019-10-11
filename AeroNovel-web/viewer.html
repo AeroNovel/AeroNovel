@@ -1,0 +1,339 @@
+<html>
+
+<head>
+
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <META HTTP-EQUIV="pragma" CONTENT="no-cache">
+    <META HTTP-EQUIV="Cache-Control" CONTENT="no-cache, must-revalidate">
+    <META HTTP-EQUIV="expires" CONTENT="0">
+    <title>Aero Novel</title>
+    <style>
+        body {
+            background: antiquewhite;
+        }
+        svg{max-width: 100%;max-height: 80vh;}
+
+        #main {
+            line-height: 1.5;
+            width: 80vh;
+            max-width: 96%;
+            margin: auto;
+            padding: 2%;
+            font-size: 20px;
+            font-family: "宋体";
+            border: 1px solid brown;
+
+        }
+
+        #main>p {
+            margin: 0;
+            text-indent: 2em;
+            text-align: justify;
+        }
+
+        #main>.drawout {
+            margin: 0;
+            text-indent: 1.5em;
+        }
+
+        .note {
+            color: cornflowerblue;
+        }
+
+        #main>.aligned {
+            text-indent: 0;
+        }
+
+        .illu {
+            max-height: 80vh;
+            max-width: 100%;
+            text-align: center;
+        }
+
+        .emph {
+            text-emphasis: dot;
+            text-emphasis-position: under;
+            -webkit-text-emphasis: dot;
+            -webkit-text-emphasis-position: under;
+            font-weight: bold;
+        }
+        .title0
+        {
+            font-size: 1.5em;
+            text-indent: 0;
+            text-align: center!important;
+            font-weight: bold;
+        }
+
+
+        #menu_trigger {
+            background: transparent;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 90%;
+            margin: auto;
+            height: 10vh;
+            z-index: 10;
+            cursor: pointer;
+        }
+
+        #menu_trigger:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        #menu {
+            position: fixed;
+            top: 10vh;
+            z-index: 5;
+            display: none;
+            left: 0;
+            width: 30%;
+
+        }
+
+        .menu_item {
+            width: 100%;
+            margin: auto;
+            padding: 2%;
+            background: rgba(255, 255, 255, 0.7);
+            border: 1px solid red;
+            cursor: pointer;
+            font-weight: bold;
+            color: black;
+        }
+
+        .button {
+            width: 80vh;
+            max-width: 96%;
+            margin: auto;
+            padding: 2%;
+            background: rgba(255, 255, 255, 0.7);
+            border: 1px solid red;
+            cursor: pointer;
+            font-weight: bold;
+            color: black;
+        }
+
+        .button:hover {
+            background: rgba(255, 255, 255, 0.9);
+        }
+    </style>
+</head>
+
+<body>
+    <p id="log"></p>
+    <div id="main"></div>
+    <div id="menu_trigger" onclick="Menu()"></div>
+    <div id="menu" class="menu">
+        <div class="menu_item" onclick="Night()">夜间模式</div>
+        <div class="menu_item last">上一章</div>
+        <div class="menu_item next">下一章</div>
+    </div>
+    <div class="button next">下一章</div>
+    <script type="text/javascript">
+        function GetQueryString(name) {
+            var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)");
+            var r = window.location.search.substr(1).match(reg);
+            if (r != null) return decodeURIComponent(r[2]); return null;
+        }
+        var date = new Date();
+        var title = GetQueryString("t");
+        var n = GetQueryString("n");
+        var log = document.getElementById("log");
+        var main = document.getElementById("main");
+        log.innerHTML += "Title:" + title + ";";
+        var key = title + "_" + n;
+        var TOC;
+        var loader;
+        var ok = false;
+        Load();//Load->RenderTOC->LoadContent->RenderContent
+        function RenderTOC() {
+            if (loader.readyState == 4)
+                if (loader.status == 200) {
+                    TOC = loader.responseText.split("\n");
+                    LoadContent();
+                }
+            if (loader.status == 404) { main.innerHTML = "没能找到这本书……"; }
+        }
+        function Load() {
+            //Load TOC
+            loader = new XMLHttpRequest();
+            loader.open('GET',  title + '/contents.txt' + "?random=" + date.getTime(), true);
+            loader.onreadystatechange = RenderTOC;
+            loader.send(null);
+        }
+        function RenderContent() {
+            if (loader.readyState == 4)
+                if (loader.status == 200) {
+                    var cont = loader.responseText.split("\n");
+                    var code = "";
+                    var line = 0;
+                    cont.forEach(ele => {
+                        var c = ele.replace('\r', '');
+                        c = EncodeNovel2(c);
+                        var cla = "";
+                        if (c.length == 0) c = "<br>";
+                        if (c[0] == "「" || c[0] == "『" || c[0] == "（") cla += " drawout";
+                        code += "<p id='line" + line + "' class='" + cla + "'>" + c + "</p>";
+                        line++;
+                    });
+                    main.innerHTML = code;
+                    var ua = navigator.userAgent;
+                    var iPad = ua.match(/(iPad).*OS\s([\d_]+)/),
+                        iPhone = !iPad && ua.match(/(iPhone\sOS)\s([\d_]+)/),
+                        isAndroid = ua.match(/(Android)\s+([\d.]+)/),
+                        isMobile = iPhone || isAndroid;
+                    if (isMobile) {
+                        log.innerHTML += "Mobile;";
+                        main.style.fontSize = "5vw";
+                    }
+                    ReplaceSVG();
+                    window.scrollTo(0, parseFloat(localStorage.getItem(key)));
+                    ok = true;
+                }
+        }
+        function LoadContent() {
+            var message = true;
+            TOC.forEach(ele => {
+                if (ele.indexOf(n) == 0) {
+                    loader = new XMLHttpRequest();
+                    loader.open('GET', title + "/" + ele + "?random=" + date.getTime(), true);
+                    loader.onreadystatechange = RenderContent;
+                    loader.send(null);
+                    message = false;
+                    return;
+                }
+            });
+            if (message)
+                main.innerHTML = "没能找到这个章节……";
+
+
+        }
+        var note_count = 0;
+        var notes = new Array();
+        function EncodeNovel2(c) {
+            var reg = new Array(
+                /\[align=(.*?)\](.*?)\[\/align\]/i,
+                /\[note\]/,
+                /\[note=(.*?)\]/,
+                /\[img\](.*?)\[\/img\]/,
+                /\[b\](.*?)\[\/b\]/,
+                /\[title\](.*?)\[\/title\]/,
+                /\[ruby=(.*?)\](.*?)\[\/ruby\]/,
+                /\[pagebreak\]/,
+                /(\/\*.*?\*\/)/,
+                /\/\/\/.*/,
+                /\[emphasis\](.*?)\[\/emphasis\]/,
+                /\[s\](.*?)\[\/s\]/,
+                /\[i\](.*?)\[\/i\]/
+            );
+            var rept = new Array(
+                "<p class='aligned' style='text-align:$1'>$2</p>",
+                "",
+                "",
+                "<div class='illu'><img class='illu' src='$1'></div>",
+                "<b>$1</b>",
+                "<p class='title0'>$1</p>",
+                "<ruby>$2<rt>$1</rt></ruby>",
+                "",//pagebreak
+                "",//note
+                "",//note
+                "<span class=\"emph\">$1</span>",
+                "<s>$1</s>",
+                "<i>$1</i>"
+                
+            );
+            var r = c;
+            var matched = true;
+            while (matched) {
+                matched = false;
+                for (var i = 0; i < reg.length; i++) {
+                    var match = reg[i].exec(r);
+                    if (match != null) {
+                        var rep = rept[i];
+                        switch (i) {
+                            case 1://[note]
+                                rep = "<a class='note' onclick='Footnote(" + note_count + ")'><sup>注</sup></a>";
+                                note_count++;
+                                break;
+                            case 2://[note=...]
+                                notes.push(match[1]);
+                                break;
+
+                                break;
+                        }
+                        matched = true;
+                        r = r.replace(reg[i], rep);
+                        break;
+                    }
+                }
+
+
+            }
+            return r;
+        }
+        function ReplaceSVG() {
+            console.log("SVG");
+            [].forEach.call(document.getElementsByTagName("img"), function (e) {
+                if (e.src.indexOf("svg") > 0) {
+                    let loadsvg = new XMLHttpRequest();
+                    loadsvg.open("GET", e.src, true);
+                    loadsvg.onreadystatechange = function () {
+                        if (loadsvg.readyState == loadsvg.DONE) {
+                            let pa = e.parentNode;
+                            let svgcontent=loadsvg.responseText;
+                            svgcontent=svgcontent.replace("../Images",title+"/Images");
+                            pa.innerHTML = svgcontent;
+                        }
+                    }
+                    loadsvg.send();
+
+                }
+            });
+        }
+        function Footnote(a) {
+            alert(notes[a]);
+        }
+
+        setInterval(SavePos, 3000);
+        function SavePos() {
+            if (ok) localStorage.setItem(key, window.pageYOffset);
+        }
+
+        var menu = document.getElementById("menu");
+        var isOpen = false;
+        function Menu() {
+            if (isOpen) {
+                menu.style.display = "none";
+                isOpen = false;
+            }
+            else {
+                menu.style.display = "block";
+                isOpen = true;
+            }
+        }
+        var isNight = false;
+        function Night() {
+            if (isNight) {
+                document.body.style.background = "antiquewhite";
+                document.body.style.color = "black";
+                isNight = false;
+            }
+            else {
+                document.body.style.background = "black";
+                document.body.style.color = "antiquewhite";
+                isNight = true;
+            }
+            Menu();
+        }
+        var current = window.location.href.match(/n=([0-9]*)/)[1];
+        var last = window.location.href.replace(/n=([0-9])*/, "n=" + (parseInt(current) - 1));
+        var next = window.location.href.replace(/n=([0-9])*/, "n=" + (parseInt(current) + 1));
+        [].forEach.call(document.getElementsByClassName("last"), function (e) { e.onclick = function () { window.open(last, '_self'); }; });
+        [].forEach.call(document.getElementsByClassName("next"), function (e) { e.onclick = function () { window.open(next, '_self'); }; });
+    </script>
+</body>
+
+</html>

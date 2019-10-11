@@ -53,6 +53,7 @@ class GenBbcode
         string html = "";
         foreach (string line in txt)
         {
+            if(line.StartsWith("##"))continue;
             string r = line;
             Match m = Regex.Match("", "1");
             do
