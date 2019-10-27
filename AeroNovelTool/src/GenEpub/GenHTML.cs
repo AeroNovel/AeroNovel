@@ -9,7 +9,7 @@ namespace AeroNovelEpub
 
         public GenHtml()
         {
-            
+
         }
         public string Gen(string[] txt)
         {
@@ -21,6 +21,7 @@ namespace AeroNovelEpub
                 "\\[note\\]",//1
                 "\\[note=(.*?)\\]",//2
                 "\\[img\\](.*?)\\[\\/img\\]",//3
+                "\\[illu\\](.*?)\\[\\/illu\\]",//4
                 "\\[b\\](.*?)\\[\\/b\\]",
                 "\\[title\\](.*?)\\[\\/title\\]",
                 "\\[ruby=(.*?)\\](.*?)\\[\\/ruby\\]",
@@ -34,6 +35,7 @@ namespace AeroNovelEpub
 
             var repls = new string[]{
                 "<p class=\"aligned\" style=\"text-align:$1\">$2</p>",
+                "",
                 "",
                 "",
                 "",
@@ -51,8 +53,8 @@ namespace AeroNovelEpub
             string html = "";
             foreach (string line in txt)
             {
-                if(line.StartsWith("##"))continue;
-                string r =EncodeHTML(line);
+                if (line.StartsWith("##")) continue;
+                string r = EncodeHTML(line);
                 Match m = Regex.Match("", "1");
                 do
                 {
@@ -73,9 +75,19 @@ namespace AeroNovelEpub
                                     r = reg.Replace(r, "", 1);
                                     break;
                                 case 3://img
-                                    string src = "../Images/" + Path.GetFileName(m.Groups[1].Value);
-                                    string img_temp = "<div class=\"aligned illu\"><img class=\"illu\" src=\"{0}\" alt=\"\"/></div>";
-                                    r = reg.Replace(r, string.Format(img_temp, src), 1);
+                                    {
+                                        string src = "../Images/" + Path.GetFileName(m.Groups[1].Value);
+                                        string img_temp = "<div class=\"aligned\"><img src=\"{0}\" alt=\"\"/></div>";
+                                        r = reg.Replace(r, string.Format(img_temp, src), 1);
+                                    }
+
+                                    break;
+                                case 4://illu
+                                    {
+                                        string src = "../Images/" + Path.GetFileName(m.Groups[1].Value);
+                                        string img_temp = "<div class=\"aligned illu\"><img class=\"illu\" src=\"{0}\" alt=\"\"/></div>";
+                                        r = reg.Replace(r, string.Format(img_temp, src), 1);
+                                    }
                                     break;
                                 default:
                                     r = reg.Replace(r, repls[i]);
@@ -87,7 +99,7 @@ namespace AeroNovelEpub
                     }
                 } while (m.Success);
                 if (r.Length == 0) { r = "<br/>"; }
-                if (!Regex.Match(r, "<p.*>").Success&&!Regex.Match(r, "<div.*>").Success)
+                if (!Regex.Match(r, "<p.*>").Success && !Regex.Match(r, "<div.*>").Success)
                 {
                     if (r[0] == '（' || r[0] == '「' || r[0] == '『')
                     {
@@ -98,33 +110,33 @@ namespace AeroNovelEpub
                 }
                 html += r + "\n";
             }
-            if(notes.Count>0)
+            if (notes.Count > 0)
             {
-            html+="<aside class=\"notesection\" epub:type=\"footnote\">注释<br/>";
-            string note_temp = "<aside epub:type=\"footnote\" id=\"note{0}\"><a href=\"#note_ref{0}\">{2}</a><p class=\"pagebreak\">{1}</p></aside>\n";
-            int count = 0;
-            foreach (string note in notes)
-            {
-                int div=note.IndexOf(':');
-                if(div>0)
+                html += "<aside class=\"notesection\" epub:type=\"footnote\">注释<br/>";
+                string note_temp = "<aside epub:type=\"footnote\" id=\"note{0}\"><a href=\"#note_ref{0}\">{2}</a><p class=\"pagebreak\">{1}</p></aside>\n";
+                int count = 0;
+                foreach (string note in notes)
                 {
-                    string noteref_text=note.Substring(0,div);
-                    html=html.Replace(string.Format(noteref_temp, count),string.Format(noteref_temp.Replace("注",noteref_text), count));  
-                    string note_content=note.Substring(div+1);
-                    html += string.Format(note_temp, count, note_content,noteref_text+":");
+                    int div = note.IndexOf(':');
+                    if (div > 0)
+                    {
+                        string noteref_text = note.Substring(0, div);
+                        html = html.Replace(string.Format(noteref_temp, count), string.Format(noteref_temp.Replace("注", noteref_text), count));
+                        string note_content = note.Substring(div + 1);
+                        html += string.Format(note_temp, count, note_content, noteref_text + ":");
+                    }
+                    else
+                        html += string.Format(note_temp, count, note, "注:");
+                    count++;
                 }
-                else
-                html += string.Format(note_temp, count, note,"注:");
-                count++;
-            }
-            html+="</aside>";
+                html += "</aside>";
             }
 
             return html;
         }
         public static string EncodeHTML(string s)
         {
-            return s.Replace("&","&amp;");
+            return s.Replace("&", "&amp;");
         }
     }
 }

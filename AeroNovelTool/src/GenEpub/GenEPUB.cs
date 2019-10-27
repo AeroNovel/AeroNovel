@@ -44,7 +44,7 @@ namespace AeroNovelEpub
                 }
                 string xhtml = xhtml_temp.Replace("{❤title}", chaptitle).Replace("{❤body}", body);
                 string name="t"+no+".xhtml";
-                if(Regex.Match(Path.GetFileNameWithoutExtension(f),"[a-zA-Z0-9]").Success)
+                if(Regex.Match(Path.GetFileNameWithoutExtension(f),"^[a-zA-Z0-9]*$").Success)
                 {
                     name="t"+Path.GetFileNameWithoutExtension(f)+".xhtml";
                 }
