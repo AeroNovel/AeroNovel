@@ -77,7 +77,7 @@ namespace AeroNovelEpub
                                 case 3://img
                                     {
                                         string src = "../Images/" + Path.GetFileName(m.Groups[1].Value);
-                                        string img_temp = "<div class=\"aligned\"><img src=\"{0}\" alt=\"\"/></div>";
+                                        string img_temp = "<img src=\"{0}\" alt=\"\"/>";
                                         r = reg.Replace(r, string.Format(img_temp, src), 1);
                                     }
 
