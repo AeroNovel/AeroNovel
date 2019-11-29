@@ -59,6 +59,7 @@ public class Epub2Comment
             if (p.GetType() == typeof(XTag))
             {
                 XTag p0 = (XTag)p;
+                if(p0.tagname=="img"){txt+=p0.originalText;}
                 if (p.type == PartType.tag_start && p0.tagname == "rt") { txt += "("; }
                 if (p.type == PartType.tag_end && p0.tagname == "rt") { txt += ")"; }
                 if (p.type == PartType.tag_start && p0.tagname == "p") { txt += "##"; }

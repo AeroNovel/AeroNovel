@@ -6,10 +6,10 @@ namespace AeroNovelEpub
 {
     public class GenHtml
     {
-
-        public GenHtml()
+        GenEpub context;
+        public GenHtml(GenEpub context)
         {
-
+            this.context = context;
         }
         public string Gen(string[] txt)
         {
@@ -22,6 +22,8 @@ namespace AeroNovelEpub
                 "\\[note=(.*?)\\]",//2
                 "\\[img\\](.*?)\\[\\/img\\]",//3
                 "\\[illu\\](.*?)\\[\\/illu\\]",//4
+                "\\[class=(.*?)\\](.*?)\\[\\/class\\]",//5
+                "\\[chapter=(.*?)\\](.*?)\\[\\/chapter\\]",//6
                 "\\[b\\](.*?)\\[\\/b\\]",
                 "\\[title\\](.*?)\\[\\/title\\]",
                 "\\[ruby=(.*?)\\](.*?)\\[\\/ruby\\]",
@@ -30,15 +32,17 @@ namespace AeroNovelEpub
                 "///.*",
                 "\\[emphasis\\](.*?)\\[\\/emphasis\\]",
                 "\\[s\\](.*?)\\[\\/s\\]",
-                "\\[i\\](.*?)\\[\\/i\\]"
+                "\\[i\\](.*?)\\[\\/i\\]",
                 };
 
             var repls = new string[]{
                 "<p class=\"aligned\" style=\"text-align:$1\">$2</p>",
-                "",
-                "",
-                "",
-                "",
+                "",//1
+                "",//2
+                "",//3
+                "",//4
+                "",//5
+                "",//6
                 "<b>$1</b>",
                 "<p class=\"title0\">$1</p>",
                 "<ruby>$2<rt>$1</rt></ruby>",
@@ -47,13 +51,20 @@ namespace AeroNovelEpub
                 "",
                 "<span class=\"emph\">$1</span>",
                 "<s>$1</s>",
-                "<i>$1</i>"
+                "<i>$1</i>",
+                "",//class
+
                 };
 
             string html = "";
             foreach (string line in txt)
             {
                 if (line.StartsWith("##")) continue;
+                if (line.StartsWith("#HTML:"))
+                {
+                    html += line.Substring("#HTML:".Length);
+                    continue;
+                }
                 string r = EncodeHTML(line);
                 Match m = Regex.Match("", "1");
                 do
@@ -87,6 +98,32 @@ namespace AeroNovelEpub
                                         string src = "../Images/" + Path.GetFileName(m.Groups[1].Value);
                                         string img_temp = "<div class=\"aligned illu\"><img class=\"illu\" src=\"{0}\" alt=\"\"/></div>";
                                         r = reg.Replace(r, string.Format(img_temp, src), 1);
+                                    }
+                                    break;
+                                case 5://class
+                                    {
+
+                                        if (m.Index == 0)
+                                        {
+                                            r = reg.Replace(r, "<p class=\"$1\">$2</p>");
+
+                                        }
+                                        else
+                                        {
+                                            r = reg.Replace(r, "<span class=\"$1\">$2</span>");
+                                        }
+                                    }
+                                    break;
+                                case 6://chapter
+                                    {
+                                        string chapnum_s = m.Groups[1].Value;
+                                        int chapnum;
+                                        if (!int.TryParse(chapnum_s, out chapnum)) { Log.log("[Error]Bad chapter string:" + chapnum_s); continue; }
+
+                                        int index = context.txt_nums.FindIndex(0, (s) => int.Parse(s) == chapnum);
+                                        if (index < 0) { Log.log("[Error]Bad chapter number:" + chapnum); continue; }
+                                        string path = context.xhtml_names[index];
+                                        r = reg.Replace(r, "<a href=\"" + path + "\">$2</a>");
                                     }
                                     break;
                                 default:

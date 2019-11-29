@@ -7,10 +7,11 @@ namespace AeroNovelEpub
 {
     public class GenEpub
     {
-        static List<string> txt_nums=new List<string>();
-        static List<string> txt_titles=new List<string>();
-        static List<string> xhtml_names=new List<string>();
-        public static Epub Gen(string dir)
+        public List<string> txt_nums = new List<string>();
+        public List<string> txt_titles = new List<string>();
+        public List<string> xhtml_names = new List<string>();
+        public List<string> txt_paths = new List<string>();
+        public Epub Gen(string dir)
         {
             Epub epub = new Epub("template.zip");
             string uid = "urn:uuid:" + Guid.NewGuid().ToString();
@@ -23,41 +24,45 @@ namespace AeroNovelEpub
             string spine = "";
             string items = "";
 
-            GenHtml genHtml = new GenHtml();
-            
+
 
             string[] files = Directory.GetFiles(dir);
             foreach (string f in files)
             {
-                Match m = Regex.Match(Path.GetFileName(f),AeroNovel.filename_reg);
+                Match m = Regex.Match(Path.GetFileName(f), AeroNovel.filename_reg);
                 if (!m.Success) { continue; }
                 string no = m.Groups[1].Value;
                 string chaptitle = m.Groups[2].Value;
-                string[] lines = File.ReadAllLines(f);
-                string body = genHtml.Gen(lines);
-                if (f.Contains("info.txt"))
+                string name = "t" + no + ".xhtml";
+                if (Regex.Match(Path.GetFileNameWithoutExtension(f), "^[a-zA-Z0-9]*$").Success)
                 {
-                    body = "<div class=\"info\" epub:type=\"acknowledgements\">" + body + "<p>AeroNovelTool EPUB生成器by AE " + DateTime.Now + "</p>" +
-                    "<p>推荐使用阅读器:<br/>Apple Books<br/>Microsoft Edge(UWP Edge)<br/>Kindle(使用Kindlegen 转换)<br/></p>" +
-                    "</div>";
-                    //File.WriteAllText("info.txt",body);
+                    name = "t" + Path.GetFileNameWithoutExtension(f) + ".xhtml";
                 }
-                string xhtml = xhtml_temp.Replace("{❤title}", chaptitle).Replace("{❤body}", body);
-                string name="t"+no+".xhtml";
-                if(Regex.Match(Path.GetFileNameWithoutExtension(f),"^[a-zA-Z0-9]*$").Success)
-                {
-                    name="t"+Path.GetFileNameWithoutExtension(f)+".xhtml";
-                }
-                
-                TextItem i=new TextItem("OEBPS/Text/"+name,xhtml);
-                epub.items.Add(i);
-                items += string.Format("<item id=\"{0}\" href=\"Text/{0}\" media-type=\"application/xhtml+xml\"/>\n",name);
+                items += string.Format("<item id=\"{0}\" href=\"Text/{0}\" media-type=\"application/xhtml+xml\"/>\n", name);
                 spine += string.Format("<itemref idref=\"{0}\"/>", name);
-                Log.log("[Info]Proc Text No." + no+": "+chaptitle);
 
                 txt_nums.Add(no);
                 txt_titles.Add(chaptitle);
                 xhtml_names.Add(name);
+                txt_paths.Add(f);
+            }
+            GenHtml genHtml = new GenHtml(this);
+            for (int i = 0; i < txt_nums.Count; i++)
+            {
+                string f = txt_paths[i];
+                string[] lines = File.ReadAllLines(f);
+                string body = genHtml.Gen(lines);
+                if (f.EndsWith("info.txt") || f.EndsWith("info.atxt"))
+                {
+                    body = "<div class=\"info\" epub:type=\"acknowledgements\">" + body + "<p>AeroNovelTool EPUB生成器by AE " + DateTime.Now + "</p>" +
+                    "<p>推荐使用阅读器:<br/>Apple Books<br/>Kindle(使用Kindlegen 转换)<br/></p>" +
+                    "</div>";
+                    //File.WriteAllText("info.txt",body);
+                }
+                string xhtml = xhtml_temp.Replace("{❤title}", txt_titles[i]).Replace("{❤body}", body);
+                TextItem item = new TextItem("OEBPS/Text/" + xhtml_names[i], xhtml);
+                epub.items.Add(item);
+                Log.log("[Info]Add xhtml: " + item+" (title:"+txt_titles[i]+")");
             }
 
             string img = Path.Combine(dir, "Images");
@@ -67,10 +72,10 @@ namespace AeroNovelEpub
                 {
                     if (f.Contains(".jpg"))
                     {
-                        NormalItem i=new NormalItem("OEBPS/Images/"+Path.GetFileName(f),File.ReadAllBytes(f));
+                        NormalItem i = new NormalItem("OEBPS/Images/" + Path.GetFileName(f), File.ReadAllBytes(f));
                         epub.items.Add(i);
                         items += string.Format("<item id=\"{0}\" href=\"Images/{0}\" media-type=\"image/jpeg\"/>\n", Path.GetFileName(f));
-                        Log.log("[Info]Add image: "+f);
+                        Log.log("[Info]Add image: " + f);
                     }
 
                 }
@@ -80,15 +85,15 @@ namespace AeroNovelEpub
             meta = meta.Replace("{urn:uuid}", uid);
             string title = Regex.Match(meta, "<dc:title.*?>(.*?)</dc:title>").Groups[1].Value;
 
-            TextItem toc=epub.GetItem<TextItem>("OEBPS/toc.ncx");
-            toc.data = GenTOC(File.ReadAllLines(Path.Combine(dir, "toc.txt")), uid, title,toc.data);
+            TextItem toc = epub.GetItem<TextItem>("OEBPS/toc.ncx");
+            toc.data = GenTOC(File.ReadAllLines(Path.Combine(dir, "toc.txt")), uid, title, toc.data);
 
             TextItem opf = epub.GetItem<TextItem>("OEBPS/content.opf");
-            opf.data= string.Format(opf.data, meta, items, spine);
+            opf.data = string.Format(opf.data, meta, items, spine);
             epub.ReadMeta();
             return epub;
         }
-        public static string GenTOC(string[] lines, string uid, string title, string template)
+        public string GenTOC(string[] lines, string uid, string title, string template)
         {
             //string temp=File.ReadAllText("template/toc.txt");
             string r = "";
@@ -116,8 +121,8 @@ namespace AeroNovelEpub
                         m = Regex.Match(line.Substring(m.Index + m.Length), "([0-9][0-9])");
                         if (m.Success)
                         {
-                            int index=txt_nums.IndexOf(m.Groups[1].Value);
-                            string link = "Text/" +xhtml_names[index];
+                            int index = txt_nums.IndexOf(m.Groups[1].Value);
+                            string link = "Text/" + xhtml_names[index];
                             r = r.Replace("dummylink", link);
                         }
                     }
@@ -128,8 +133,8 @@ namespace AeroNovelEpub
                 if (m.Success)
                 {
                     count++;
-                    int index=txt_nums.IndexOf(m.Groups[1].Value);
-                    string link = "Text/" +xhtml_names[index];
+                    int index = txt_nums.IndexOf(m.Groups[1].Value);
+                    string link = "Text/" + xhtml_names[index];
                     r += string.Format("<navPoint id=\"navPoint-{0}\" playOrder=\"{0}\"><navLabel><text>{1}</text></navLabel><content src=\"{2}\"/></navPoint>\n", count, txt_titles[index], link);
                     r = r.Replace("dummylink", link);
                 }

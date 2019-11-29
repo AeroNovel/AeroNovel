@@ -12,7 +12,8 @@ class Program
                 case "epub":
                     if (Directory.Exists(args[1]))
                     {
-                        Epub e = AeroNovelEpub.GenEpub.Gen(args[1]);
+                        var gen=new AeroNovelEpub.GenEpub();
+                        Epub e = gen.Gen(args[1]);
                         e.filename = e.title;
                         e.Save("");
                     }

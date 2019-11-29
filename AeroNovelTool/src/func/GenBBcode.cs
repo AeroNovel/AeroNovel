@@ -28,26 +28,32 @@ class GenBbcode
                 //"\\([align=.*?\\].*?\\[\\/align\\])",
                 "\\[note\\]",
                 "\\[note=(.*?)\\]",
-                //"\\[img\\](.*?)\\[\\/img\\]",
+                "\\[img\\](.*?)\\[\\/img\\]",
+                "\\[illu\\](.*?)\\[\\/illu\\]",
+                "\\[class=(.*?)\\](.*?)\\[\\/class\\]",
                 //"\\[b\\](.*?)\\[\\/b\\]",
                 "\\[title\\](.*?)\\[\\/title\\]",
                 //"\\[ruby=(.*?)\\](.*?)\\[\\/ruby\\]",
                 "\\[pagebreak\\]",
                 "/\\*.*?\\*/",
-                "///.*"
+                "///.*",
+                "\\[emphasis\\](.*?)\\[\\/emphasis\\]",
                 };
 
         var repls = new string[]{
                 //"$1",
                 "[color=#00ffff][sup]注[/sup][/color]",
                 "\r\n[align=right][size=1][color=#00ffff]$1[/color][/size][/align]",
-                //"[图片：$1]",
+                "[图片：$1]",
+                "[图片：$1]",
+                "$2",
                 //"$1",
                 "[size=5]$1[/size]",
-                //"$2（$1）",
-                "",
-                "",
-                ""
+                //"$2（$1）",//ruby
+                "",//pagebreak
+                "",//note
+                "",//note
+                "[b]$1[/b]"//emphas
                 };
 
         string html = "";
