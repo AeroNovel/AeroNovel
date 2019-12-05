@@ -16,45 +16,41 @@ namespace AeroNovelEpub
             string noteref_temp = "<a class=\"noteref\" epub:type=\"noteref\" href=\"#note{0}\" id=\"note_ref{0}\"><sup>[注]</sup></a>";
             int note_count = 0;
             List<string> notes = new List<string>();
-            var regs = new string[]{
-                "\\[align=(.*?)\\](.*?)\\[\\/align\\]",
-                "\\[note\\]",//1
-                "\\[note=(.*?)\\]",//2
-                "\\[img\\](.*?)\\[\\/img\\]",//3
-                "\\[illu\\](.*?)\\[\\/illu\\]",//4
-                "\\[class=(.*?)\\](.*?)\\[\\/class\\]",//5
-                "\\[chapter=(.*?)\\](.*?)\\[\\/chapter\\]",//6
-                "\\[b\\](.*?)\\[\\/b\\]",
-                "\\[title\\](.*?)\\[\\/title\\]",
-                "\\[ruby=(.*?)\\](.*?)\\[\\/ruby\\]",
-                "\\[pagebreak\\]",
-                "/\\*.*?\\*/",
-                "///.*",
-                "\\[emphasis\\](.*?)\\[\\/emphasis\\]",
-                "\\[s\\](.*?)\\[\\/s\\]",
-                "\\[i\\](.*?)\\[\\/i\\]",
-                };
+            const string reg_noteref = "\\[note\\]";
+            const string reg_notecontent = "\\[note=(.*?)\\]";
+            const string reg_img = "\\[img\\](.*?)\\[\\/img\\]";
+            const string reg_illu = "\\[illu\\](.*?)\\[\\/illu\\]";
+            const string reg_class = "\\[class=(.*?)\\](.*?)\\[\\/class\\]";
+            const string reg_chapter = "\\[chapter=(.*?)\\](.*?)\\[\\/chapter\\]";
+            Dictionary<string, string> reg_dic = new Dictionary<string, string>
+            {
+                {"\\[align=(.*?)\\](.*?)\\[\\/align\\]","<p class=\"aligned\" style=\"text-align:$1\">$2</p>"},
+                {reg_noteref,""},
+                {reg_notecontent,""},
+                {reg_img,""},
+                {reg_illu,""},
+                {reg_class,""},
+                {reg_chapter,""},
+                {"\\[b\\](.*?)\\[\\/b\\]","<b>$1</b>"},
+                {"\\[title\\](.*?)\\[\\/title\\]","<p class=\"title0\">$1</p>"},
+                {"\\[ruby=(.*?)\\](.*?)\\[\\/ruby\\]","<ruby>$2<rt>$1</rt></ruby>"},
+                {"\\[pagebreak\\]","<p class=\"pagebreak\"><br/></p>"},
+                {"/\\*.*?\\*/",""},
+                {"///.*",""},
+                {"\\[emphasis\\](.*?)\\[\\/emphasis\\]","<span class=\"emph\">$1</span>"},
+                {"\\[s\\](.*?)\\[\\/s\\]","<s>$1</s>"},
+                {"\\[i\\](.*?)\\[\\/i\\]","<i>$1</i>"},
+                {"\\[color=(.*?)\\](.*?)\\[\\/color\\]","<span style=\"color:$1\">$2</span>"},
+                {"\\[size=(.*?)\\](.*?)\\[\\/size\\]","<span style=\"font-size:$1em\">$2</span>"},
+                {"\\[h1\\](.*?)\\[\\/h1\\]","<h1>$1</h1>"},
+                {"\\[h2\\](.*?)\\[\\/h2\\]","<h2>$1</h2>"},
+                {"\\[h3\\](.*?)\\[\\/h3\\]","<h3>$1</h3>"},
+                {"\\[h4\\](.*?)\\[\\/h4\\]","<h4>$1</h4>"},
+                {"\\[h5\\](.*?)\\[\\/h5\\]","<h5>$1</h5>"},
+                {"\\[h6\\](.*?)\\[\\/h6\\]","<h6>$1</h6>"}
+            };
 
-            var repls = new string[]{
-                "<p class=\"aligned\" style=\"text-align:$1\">$2</p>",
-                "",//1
-                "",//2
-                "",//3
-                "",//4
-                "",//5
-                "",//6
-                "<b>$1</b>",
-                "<p class=\"title0\">$1</p>",
-                "<ruby>$2<rt>$1</rt></ruby>",
-                "<p class=\"pagebreak\"><br/></p>",
-                "",
-                "",
-                "<span class=\"emph\">$1</span>",
-                "<s>$1</s>",
-                "<i>$1</i>",
-                "",//class
 
-                };
 
             string html = "";
             foreach (string line in txt)
@@ -69,38 +65,64 @@ namespace AeroNovelEpub
                 Match m = Regex.Match("", "1");
                 do
                 {
-                    for (int i = 0; i < regs.Length; i++)
+                    foreach (var pair in reg_dic)
                     {
-                        m = Regex.Match(r, regs[i]);
+                        m = Regex.Match(r, pair.Key);
                         if (m.Success)
                         {
-                            Regex reg = new Regex(regs[i]);
-                            switch (i)
+                            Regex reg = new Regex(pair.Key);
+                            switch (pair.Key)
                             {
-                                case 1://noteref
+                                case reg_noteref://noteref
                                     r = reg.Replace(r, string.Format(noteref_temp, note_count), 1);
                                     note_count++;
                                     break;
-                                case 2://note
+                                case reg_notecontent://note
                                     notes.Add(m.Groups[1].Value);
                                     r = reg.Replace(r, "", 1);
                                     break;
-                                case 3://img
+                                case reg_img://img
                                     {
-                                        string src = "../Images/" + Path.GetFileName(m.Groups[1].Value);
+                                        string img_name = Path.GetFileName(m.Groups[1].Value);
+                                        if (File.Exists(Path.Combine(context.img_path, img_name)))
+                                        {
+                                            Log.log("[Info]Image used:" + img_name);
+                                            if (!context.img_names.Contains(img_name))
+                                            {
+                                                context.img_names.Add(img_name);
+                                            }
+                                        }
+                                        else
+                                        {
+                                            Log.log("[Warn]Cannot find " + img_name);
+                                        }
+                                        string src = "../Images/" + img_name;
                                         string img_temp = "<img src=\"{0}\" alt=\"\"/>";
                                         r = reg.Replace(r, string.Format(img_temp, src), 1);
                                     }
 
                                     break;
-                                case 4://illu
+                                case reg_illu://illu
                                     {
-                                        string src = "../Images/" + Path.GetFileName(m.Groups[1].Value);
+                                        string img_name = Path.GetFileName(m.Groups[1].Value);
+                                        if (File.Exists(Path.Combine(context.img_path, img_name)))
+                                        {
+                                            Log.log("[Info]Illustation used:" + img_name);
+                                            if (!context.img_names.Contains(img_name))
+                                            {
+                                                context.img_names.Add(img_name);
+                                            }
+                                        }
+                                        else
+                                        {
+                                            Log.log("[Warn]Cannot find " + img_name);
+                                        }
+                                        string src = "../Images/" + img_name;
                                         string img_temp = "<div class=\"aligned illu\"><img class=\"illu\" src=\"{0}\" alt=\"\"/></div>";
                                         r = reg.Replace(r, string.Format(img_temp, src), 1);
                                     }
                                     break;
-                                case 5://class
+                                case reg_class://class
                                     {
 
                                         if (m.Index == 0)
@@ -114,7 +136,7 @@ namespace AeroNovelEpub
                                         }
                                     }
                                     break;
-                                case 6://chapter
+                                case reg_chapter://chapter
                                     {
                                         string chapnum_s = m.Groups[1].Value;
                                         int chapnum;
@@ -127,7 +149,7 @@ namespace AeroNovelEpub
                                     }
                                     break;
                                 default:
-                                    r = reg.Replace(r, repls[i]);
+                                    r = reg.Replace(r, pair.Value);
                                     break;
                             }
                             break;
@@ -136,7 +158,13 @@ namespace AeroNovelEpub
                     }
                 } while (m.Success);
                 if (r.Length == 0) { r = "<br/>"; }
-                if (!Regex.Match(r, "<p.*>").Success && !Regex.Match(r, "<div.*>").Success)
+                bool addp = true;
+                string[] dont_addp_list = new string[]
+                {"p","div","h1","h2","h3","h4","h5","h6"};
+                foreach (var a in dont_addp_list)
+                    if (Regex.Match(r, "<" + a + ".*>").Success)
+                        addp = false;
+                if (addp)
                 {
                     if (r[0] == '（' || r[0] == '「' || r[0] == '『')
                     {

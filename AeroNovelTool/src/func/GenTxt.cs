@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using System.IO.Compression;
 
@@ -28,32 +29,33 @@ class GenTxt
     }
     public static string Body(string[] txt)
     {
-        var regs = new string[]{
-                "\\[align=(.*?)\\](.*?)\\[\\/align\\]",//0
-                "\\[note\\]",
-                "\\[note=(.*?)\\]",
-                "\\[img\\](.*?)\\[\\/img\\]",
-                "\\[b\\](.*?)\\[\\/b\\]",
-                "\\[title\\](.*?)\\[\\/title\\]",
-                "\\[ruby=(.*?)\\](.*?)\\[\\/ruby\\]",
-                "\\[pagebreak\\]",
-                "/\\*.*?\\*/",
-                "\\[emphasis\\](.*?)\\[\\/emphasis\\]"
-                };
-
-        var repls = new string[]{
-                "$2",
-                "[注]",
-                "[$1]",
-                "[图片：$1]",
-                "$1",
-                "$1",
-                "$2（$1）",
-                "",
-                "",
-                "$1"
-                };
-
+                    const string reg_noteref = "\\[note\\]";
+            const string reg_notecontent = "\\[note=(.*?)\\]";
+            const string reg_img = "\\[img\\](.*?)\\[\\/img\\]";
+            const string reg_illu = "\\[illu\\](.*?)\\[\\/illu\\]";
+            const string reg_class = "\\[class=(.*?)\\](.*?)\\[\\/class\\]";
+            const string reg_chapter = "\\[chapter=(.*?)\\](.*?)\\[\\/chapter\\]";
+            Dictionary<string, string> reg_dic = new Dictionary<string, string>
+            {
+                {"\\[align=(.*?)\\](.*?)\\[\\/align\\]","$2"},
+                {reg_noteref,"[注]"},
+                {reg_notecontent,"[$1]"},
+                {reg_img,"[图片：$1]"},
+                {reg_illu,"[图片：$1]"},
+                {reg_class,"　$2"},
+                {reg_chapter,"$2"},
+                {"\\[b\\](.*?)\\[\\/b\\]","$1"},
+                {"\\[title\\](.*?)\\[\\/title\\]","$1"},
+                {"\\[ruby=(.*?)\\](.*?)\\[\\/ruby\\]","$2（$1）"},
+                {"\\[pagebreak\\]",""},
+                {"/\\*.*?\\*/",""},
+                {"///.*",""},
+                {"\\[emphasis\\](.*?)\\[\\/emphasis\\]","$1"},
+                {"\\[s\\](.*?)\\[\\/s\\]","$1"},
+                {"\\[i\\](.*?)\\[\\/i\\]","$1"},
+                {"\\[color=(.*?)\\](.*?)\\[\\/color\\]","$2"},
+                {"\\[size=(.*?)\\](.*?)\\[\\/size\\]","$2"}
+            };
         string html = "";
         foreach (string line in txt)
         {
@@ -63,16 +65,16 @@ class GenTxt
             Match m = Regex.Match("", "1");
             do
             {
-                for (int i = 0; i < regs.Length; i++)
+                foreach (var kw in reg_dic)
                 {
-                    m = Regex.Match(r, regs[i]);
+                    m = Regex.Match(r, kw.Key);
                     if (m.Success)
                     {
-                        Regex reg = new Regex(regs[i]);
-                        switch (i)
+                        Regex reg = new Regex(kw.Key);
+                        switch (kw.Key)
                         {
-                            case 0://align
-                                r = reg.Replace(r, repls[i]);
+                            case "\\[align=(.*?)\\](.*?)\\[\\/align\\]"://align
+                                r = reg.Replace(r, kw.Value);
                                 switch (m.Groups[1].Value)
                                 {
                                     case "right": r = "　　　　　　" + r; break;
@@ -80,13 +82,8 @@ class GenTxt
                                 }
                                 aligned=true;
                                 break;
-                            case 3://img
-                                string src = Path.GetFileName(m.Groups[1].Value);
-                                string img_temp = "图片：{0}";
-                                r = reg.Replace(r, string.Format(img_temp, src), 1);
-                                break;
                             default:
-                                r = reg.Replace(r, repls[i]);
+                                r = reg.Replace(r, kw.Value);
                                 break;
                         }
                         break;
