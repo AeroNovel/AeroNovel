@@ -80,3 +80,14 @@ aside>a
 {
     font-weight: bold;
 }
+a{text-decoration: none;}
+.imgchar
+{
+    display:    inline-block;
+    margin:     0;
+    padding:    0;
+    border:     none;
+    background: transparent;
+    width:      1em;
+    height:     1em;
+}

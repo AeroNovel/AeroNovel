@@ -69,9 +69,11 @@ public class Epub2Atxt
                         case "h6":
                             txt += "[/" + p0.tagname + "]\r\n";
                             continue;
+                        case "body":
+                            continue;
                     }
                 }
-                if(p.type == PartType.tag_end && p0.tagname == "div"){txt+="</div>\r\n";continue;}
+                if (p.type == PartType.tag_end && p0.tagname == "div") { txt += "</div>\r\n"; continue; }
                 if (p.type == PartType.tag_start && p0.tagname == "p") { continue; }
                 if (p.type == PartType.tag_end && p0.tagname == "p") { txt += "\r\n"; continue; }
                 txt += p0.originalText;

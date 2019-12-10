@@ -20,6 +20,7 @@ namespace AeroNovelEpub
             const string reg_notecontent = "\\[note=(.*?)\\]";
             const string reg_img = "\\[img\\](.*?)\\[\\/img\\]";
             const string reg_illu = "\\[illu\\](.*?)\\[\\/illu\\]";
+            const string reg_imgchar = "\\[imgchar\\](.*?)\\[\\/imgchar\\]";
             const string reg_class = "\\[class=(.*?)\\](.*?)\\[\\/class\\]";
             const string reg_chapter = "\\[chapter=(.*?)\\](.*?)\\[\\/chapter\\]";
             Dictionary<string, string> reg_dic = new Dictionary<string, string>
@@ -29,6 +30,7 @@ namespace AeroNovelEpub
                 {reg_notecontent,""},
                 {reg_img,""},
                 {reg_illu,""},
+                {reg_imgchar,""},
                 {reg_class,""},
                 {reg_chapter,""},
                 {"\\[b\\](.*?)\\[\\/b\\]","<b>$1</b>"},
@@ -122,6 +124,27 @@ namespace AeroNovelEpub
                                         r = reg.Replace(r, string.Format(img_temp, src), 1);
                                     }
                                     break;
+                                case reg_imgchar:
+                                    {
+                                        string img_name = Path.GetFileName(m.Groups[1].Value);
+                                        if (File.Exists(Path.Combine(context.img_path, img_name)))
+                                        {
+                                            Log.log("[Info]Imagechar used:" + img_name);
+                                            if (!context.img_names.Contains(img_name))
+                                            {
+                                                context.img_names.Add(img_name);
+                                            }
+                                        }
+                                        else
+                                        {
+                                            Log.log("[Warn]Cannot find " + img_name);
+                                        }
+                                        string src = "../Images/" + img_name;
+                                        string img_temp = "<img class=\"imgchar\" src=\"{0}\" alt=\"\"/>";
+                                        r = reg.Replace(r, string.Format(img_temp, src), 1);
+                                    }
+
+                                    break;
                                 case reg_class://class
                                     {
 
@@ -173,6 +196,7 @@ namespace AeroNovelEpub
                     else
                         r = "<p>" + r + "</p>";
                 }
+                CheckUnprocessedTag(r);
                 html += r + "\n";
             }
             if (notes.Count > 0)
@@ -198,6 +222,21 @@ namespace AeroNovelEpub
             }
 
             return html;
+        }
+
+        Regex reg_tag = new Regex("\\[(.{1,20}?)\\]");
+        void CheckUnprocessedTag(string s)
+        {
+            var ms = reg_tag.Matches(s);
+            foreach (Match m in ms)
+            {
+                if (Regex.Match(m.Groups[1].Value, "^[a-zA-Z0-9=]{1,20}$").Success)
+                {
+                    Log.log("[Warn]Unprocessed tag?:" + m.Value);
+                }
+            }
+
+
         }
         public static string EncodeHTML(string s)
         {

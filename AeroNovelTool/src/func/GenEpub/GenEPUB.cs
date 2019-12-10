@@ -82,6 +82,7 @@ namespace AeroNovelEpub
                 string chaptitle = m.Groups[2].Value;
                 string name = "atxt" + no + ".xhtml";
                 string txtname = Path.GetFileNameWithoutExtension(f);
+                chaptitle=Util.UrlDecode(chaptitle);
                 if (Regex.Match(txtname, "^[a-zA-Z0-9]*$").Success)
                 {
                     name = "atxt" + txtname + ".xhtml";
@@ -95,8 +96,11 @@ namespace AeroNovelEpub
                         {"序幕","prologue"},
                         {"尾声","epilogue"},
                         {"简介","summary"},
+                        {"簡介","summary"},
                         {"後記","postscript"},
-                        {"后记","postscript"}
+                        {"后记","postscript"},
+                        {"目錄","toc"},
+                        {"目录","toc"}
                     };
                 foreach (var k in name_dic)
                 {
@@ -106,7 +110,7 @@ namespace AeroNovelEpub
                     }
                 }
                 {
-                    var m_num = Regex.Match(txtname, "第([一二三四五六七八九十百零]{1,10})");
+                    var m_num = Regex.Match(txtname, "^第([一二三四五六七八九十百零]{1,10})");
                     if (m_num.Success)
                     {
                         name = "atxt" + no + "_chapter" + Util.FromChineseNumber(m_num.Groups[1].Value) + ".xhtml";

@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using System.IO.Compression;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Runtime.InteropServices;
 using System.Xml;
 
@@ -108,6 +109,10 @@ class Util
         while ((startIndex = (s.IndexOf(target, startIndex + 1))) != -1)
             counter++;
         return counter;
+    }
+    public static string UrlDecode(string s)
+    {
+        return Uri.UnescapeDataString(s);
     }
     public static bool Contains(string[] c, string s) { if (c != null) foreach (string x in c) if (x == s) return true; return false; }
 
