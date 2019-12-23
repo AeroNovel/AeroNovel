@@ -147,7 +147,7 @@ namespace AeroNovelEpub
                                 case reg_class://class
                                     {
 
-                                        if (m.Index == 0)
+                                        if (m.Index == 0&&m.Length==line.Length)
                                         {
                                             r = reg.Replace(r, "<p class=\"$1\">$2</p>");
 
