@@ -55,6 +55,8 @@ public class Epub2Atxt
                         case "h6":
                             txt += "[" + p0.tagname + "]";
                             continue;
+                        case "body":
+                            continue;
                     }
                 }
                 if (p.type == PartType.tag_end)

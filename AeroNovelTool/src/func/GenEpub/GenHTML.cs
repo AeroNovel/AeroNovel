@@ -19,13 +19,13 @@ namespace AeroNovelEpub
             const string reg_noteref = "\\[note\\]";
             const string reg_notecontent = "\\[note=(.*?)\\]";
             const string reg_img = "\\[img\\](.*?)\\[\\/img\\]";
-            const string reg_illu = "\\[illu\\](.*?)\\[\\/illu\\]";
+            const string reg_illu = "^\\[illu\\](.*?)\\[\\/illu\\]$";
             const string reg_imgchar = "\\[imgchar\\](.*?)\\[\\/imgchar\\]";
             const string reg_class = "\\[class=(.*?)\\](.*?)\\[\\/class\\]";
             const string reg_chapter = "\\[chapter=(.*?)\\](.*?)\\[\\/chapter\\]";
             Dictionary<string, string> reg_dic = new Dictionary<string, string>
             {
-                {"\\[align=(.*?)\\](.*?)\\[\\/align\\]","<p class=\"aligned\" style=\"text-align:$1\">$2</p>"},
+                {"^\\[align=(.*?)\\](.*?)\\[\\/align\\]$","<p class=\"aligned\" style=\"text-align:$1\">$2</p>"},
                 {reg_noteref,""},
                 {reg_notecontent,""},
                 {reg_img,""},
@@ -34,9 +34,9 @@ namespace AeroNovelEpub
                 {reg_class,""},
                 {reg_chapter,""},
                 {"\\[b\\](.*?)\\[\\/b\\]","<b>$1</b>"},
-                {"\\[title\\](.*?)\\[\\/title\\]","<p class=\"title0\">$1</p>"},
+                {"^\\[title\\](.*?)\\[\\/title\\]$","<p class=\"title0\">$1</p>"},
                 {"\\[ruby=(.*?)\\](.*?)\\[\\/ruby\\]","<ruby>$2<rt>$1</rt></ruby>"},
-                {"\\[pagebreak\\]","<p class=\"pagebreak\"><br/></p>"},
+                {"^\\[pagebreak\\]$","<p class=\"pagebreak\"><br/></p>"},
                 {"/\\*.*?\\*/",""},
                 {"///.*",""},
                 {"\\[emphasis\\](.*?)\\[\\/emphasis\\]","<span class=\"emph\">$1</span>"},
@@ -44,14 +44,13 @@ namespace AeroNovelEpub
                 {"\\[i\\](.*?)\\[\\/i\\]","<i>$1</i>"},
                 {"\\[color=(.*?)\\](.*?)\\[\\/color\\]","<span style=\"color:$1\">$2</span>"},
                 {"\\[size=(.*?)\\](.*?)\\[\\/size\\]","<span style=\"font-size:$1em\">$2</span>"},
-                {"\\[h1\\](.*?)\\[\\/h1\\]","<h1>$1</h1>"},
-                {"\\[h2\\](.*?)\\[\\/h2\\]","<h2>$1</h2>"},
-                {"\\[h3\\](.*?)\\[\\/h3\\]","<h3>$1</h3>"},
-                {"\\[h4\\](.*?)\\[\\/h4\\]","<h4>$1</h4>"},
-                {"\\[h5\\](.*?)\\[\\/h5\\]","<h5>$1</h5>"},
-                {"\\[h6\\](.*?)\\[\\/h6\\]","<h6>$1</h6>"}
+                {"^\\[h1\\](.*?)\\[\\/h1\\]$","<h1>$1</h1>"},
+                {"^\\[h2\\](.*?)\\[\\/h2\\]$","<h2>$1</h2>"},
+                {"^\\[h3\\](.*?)\\[\\/h3\\]$","<h3>$1</h3>"},
+                {"^\\[h4\\](.*?)\\[\\/h4\\]$","<h4>$1</h4>"},
+                {"^\\[h5\\](.*?)\\[\\/h5\\]$","<h5>$1</h5>"},
+                {"^\\[h6\\](.*?)\\[\\/h6\\]$","<h6>$1</h6>"}
             };
-
 
 
             string html = "";
@@ -189,7 +188,7 @@ namespace AeroNovelEpub
                         addp = false;
                 if (addp)
                 {
-                    if (r[0] == '（' || r[0] == '「' || r[0] == '『')
+                    if (r[0] == '（' || r[0] == '「' || r[0] == '『'||r[0]=='〈')
                     {
                         r = "<p class=\"drawout\">" + r + "</p>";
                     }
@@ -232,7 +231,7 @@ namespace AeroNovelEpub
             {
                 if (Regex.Match(m.Groups[1].Value, "^[a-zA-Z0-9=]{1,20}$").Success)
                 {
-                    Log.log("[Warn]Unprocessed tag?:" + m.Value);
+                    Log.log("[Warn]Unprocessed tag in line:“" + s+"”");
                 }
             }
 
