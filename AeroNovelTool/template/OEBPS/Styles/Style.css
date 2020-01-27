@@ -30,7 +30,6 @@ p {
 
 @media amzn-kf8 
 {
-aside {display: none;}
 div.illu{page-break-after: always;}
 }
 
@@ -49,7 +48,7 @@ div.illu{page-break-after: always;}
     height: auto;
 }
 p.illu{font-size:1em;line-height:1.1;}
-.title0
+.tagtitle
 {
     font-size: 1.5em;
     text-align: center!important;
@@ -70,10 +69,11 @@ aside
 { 
     margin-left: 1em;
     margin-right: 1em;
+    text-indent: 0;
 }
-aside>a
+aside>aside
 {
-    text-decoration: none;
+    margin-bottom: 0.2em;
 }
 .pagebreak{page-break-after: always;}
 .emph

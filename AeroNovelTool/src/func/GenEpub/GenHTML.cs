@@ -34,7 +34,7 @@ namespace AeroNovelEpub
                 {reg_class,""},
                 {reg_chapter,""},
                 {"\\[b\\](.*?)\\[\\/b\\]","<b>$1</b>"},
-                {"^\\[title\\](.*?)\\[\\/title\\]$","<p class=\"title0\">$1</p>"},
+                {"^\\[title\\](.*?)\\[\\/title\\]$","<p class=\"tagtitle\">$1</p>"},
                 {"\\[ruby=(.*?)\\](.*?)\\[\\/ruby\\]","<ruby>$2<rt>$1</rt></ruby>"},
                 {"^\\[pagebreak\\]$","<p class=\"pagebreak\"><br/></p>"},
                 {"/\\*.*?\\*/",""},
@@ -201,7 +201,7 @@ namespace AeroNovelEpub
             if (notes.Count > 0)
             {
                 html += "<aside class=\"notesection\" epub:type=\"footnote\">注释<br/>";
-                string note_temp = "<aside epub:type=\"footnote\" id=\"note{0}\"><a href=\"#note_ref{0}\">{2}</a><p class=\"pagebreak\">{1}</p></aside>\n";
+                string note_temp = "<aside epub:type=\"footnote\" id=\"note{0}\"><p class=\"footnote-p\"><a href=\"#note_ref{0}\">{2}</a>{1}</p></aside>\n";
                 int count = 0;
                 foreach (string note in notes)
                 {
